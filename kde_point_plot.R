@@ -17,11 +17,11 @@ library(reshape2)
   
   
 # The highest level function for creating the plot. Returns a ggplot object of the plot
-kde_point_plot <- function(x, y, x_bins=250, y_bins=250, log=FALSE, 
+kde_point_plot <- function(x, y, x_bins=250, y_bins=250, log=FALSE, x_log=FALSE, y_log=FALSE,
                            shape=20, size=1, low_color="white", mid_color="black", high_color="red"){
   
   # Create a dataframe with the data vectors
-  new_df <- point_kde(x=x,y=y,x_bins=x_bins,y_bins=y_bins,log=log)
+  new_df <- point_kde(x=x,y=y,x_bins=x_bins,y_bins=y_bins,log=log,x_log=x_log, y_log=y_log)
   
   # Create the ggplot object
   p <- ggplot(data = new_df, mapping=aes(x = x, y = y, color=z)) + 
@@ -31,9 +31,9 @@ kde_point_plot <- function(x, y, x_bins=250, y_bins=250, log=FALSE,
 } 
 
 # Creates a KDE heatmap
-kde_heatmap <- function(x,y, x_bins=250, y_bins=250, log=FALSE, low_color="black", mid_color="black", high_color="red"){
+kde_heatmap <- function(x,y, x_bins=250, y_bins=250, log=FALSE, x_log=FALSE, y_log=FALSE, low_color="black", mid_color="black", high_color="red"){
   # Create the dataframe
-  df <- make_xy_df(x=x,y=y,log=log)
+  df <- make_xy_df(x=x,y=y,log=log, x_log=x_log, y_log=y_log)
   # Create the bins
   bins <- make_bins(x=df$x, y=df$y, x_bins=x_bins, y_bins=y_bins)  
   #print("add row names")
@@ -63,7 +63,6 @@ kde_heatmap <- function(x,y, x_bins=250, y_bins=250, log=FALSE, low_color="black
 grid_lookup <- function(x, y, grid){
   # Create the empty results list
   results <- c()
-  
   # For each point, get the x and y index of the density data 
   for (i in 1:length(x)){
     x_coord <- x[i]
@@ -74,8 +73,8 @@ grid_lookup <- function(x, y, grid){
   return(results)
 }
 
-point_kde <- function(x,y,x_bins=100, y_bins=100, log=FALSE){
-  df <- make_xy_df(x=x,y=y,log=log)
+point_kde <- function(x,y,x_bins=100, y_bins=100, log=FALSE, x_log=FALSE, y_log=FALSE){
+  df <- make_xy_df(x=x,y=y,log=log,x_log=x_log,y_log=y_log)
   # Make the bins
   bins <- make_bins(x=df$x, y=df$y, x_bins=x_bins, y_bins=y_bins)  
   # For each datapoint, identify the x and y bin number
@@ -95,11 +94,12 @@ make_bins <- function(x, y, x_bins, y_bins){
   return(bins)
 }
 
-make_xy_df <- function(x,y,log=FALSE){
-  # If log is false, create dataframe with raw data
-  if(log==FALSE){df <- data.frame(x=x,y=y)}
-  # If log is true, take the log of the data before adding to dataframe
-  if(log==TRUE){df <- data.frame(x=sign(x)*log(abs(x)),y=sign(y)*log(abs(y)))}
+make_xy_df <- function(x,y,log=FALSE, x_log=FALSE, y_log=FALSE){
+  # If log is true, take log of raw data
+  if(x_log==TRUE | log==TRUE){x <- sign(x)*log(abs(x))}
+  if(y_log==TRUE | log==TRUE){y <- sign(y)*log(abs(y))}
+  #Create data frame
+  df <- data.frame(x=x, y=y)
   return(df)
 }
 
