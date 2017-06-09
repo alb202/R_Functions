@@ -36,12 +36,25 @@ kde_heatmap <- function(x,y, x_bins=250, y_bins=250, log=FALSE, low_color="black
   df <- make_xy_df(x=x,y=y,log=log)
   # Create the bins
   bins <- make_bins(x=df$x, y=df$y, x_bins=x_bins, y_bins=y_bins)  
+  #print("add row names")
+  rownames(bins$fhat) <- bins$x2
+  #print("add col names")
+  colnames(bins$fhat) <- bins$x1
   # Flatten the density grid
+  #print("melt")
   melted_density <- melt(bins$fhat)
   # Make the heatmap
+  #View(bins$fhat)
+  #View(melted_density)
+  x_limits <- c(min(melted_density$Var1), max(melted_density$Var1))
+  y_limits <- c(min(melted_density$Var2), max(melted_density$Var2))
   p <- ggplot(data=melted_density, mapping = aes(x = Var1, y=Var2, fill=value)) + 
     scale_fill_gradient2(low = low_color, mid=mid_color, high = high_color)+ 
-    geom_tile()
+    coord_cartesian(xlim=x_limits, ylim=y_limits) +
+    geom_tile(show.legend = TRUE) + 
+    scale_x_continuous(expand = c(0, 0)) +
+    scale_y_continuous(expand = c(0, 0))
+    
   return(p)
 }
 
@@ -86,7 +99,7 @@ make_xy_df <- function(x,y,log=FALSE){
   # If log is false, create dataframe with raw data
   if(log==FALSE){df <- data.frame(x=x,y=y)}
   # If log is true, take the log of the data before adding to dataframe
-  if(log==TRUE){df <- data.frame(x=log(x),y=log(y))}
+  if(log==TRUE){df <- data.frame(x=sign(x)*log(abs(x)),y=sign(y)*log(abs(y)))}
   return(df)
 }
 
